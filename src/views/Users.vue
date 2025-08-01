@@ -34,15 +34,24 @@
                 <td>{{ user.fullname }}</td>
                 <td>{{ user.email }}</td>
                 <td>
-                  <span class="badge" :class="user.admin ? 'bg-success' : 'bg-secondary'">
-                    {{ user.admin ? 'Admin' : 'User' }}
+                  <span
+                    class="badge"
+                    :class="user.admin ? 'bg-success' : 'bg-secondary'"
+                  >
+                    {{ user.admin ? "Admin" : "User" }}
                   </span>
                 </td>
                 <td>
-                  <button class="btn btn-sm btn-outline-primary me-2" @click="editUser(user)">
+                  <button
+                    class="btn btn-sm btn-outline-primary me-2"
+                    @click="editUser(user)"
+                  >
                     <i class="fas fa-edit"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-danger" @click="deleteUser(user.id)">
+                  <button
+                    class="btn btn-sm btn-outline-danger"
+                    @click="deleteUser(user.id)"
+                  >
                     <i class="fas fa-trash"></i>
                   </button>
                 </td>
@@ -58,69 +67,71 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">{{ isEditing ? 'Edit User' : 'Create User' }}</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <h5 class="modal-title">
+              {{ isEditing ? "Edit User" : "Create User" }}
+            </h5>
+            <button type="button" class="btn-close" @click="hideModal"></button>
           </div>
           <div class="modal-body">
             <form @submit.prevent="saveUser">
               <div class="mb-3">
                 <label for="userId" class="form-label">User ID</label>
-                <input 
-                  type="text" 
-                  class="form-control" 
-                  id="userId" 
+                <input
+                  type="text"
+                  class="form-control"
+                  id="userId"
                   v-model="currentUser.id"
                   :disabled="isEditing"
                   required
-                >
+                />
               </div>
               <div class="mb-3">
                 <label for="fullname" class="form-label">Full Name</label>
-                <input 
-                  type="text" 
-                  class="form-control" 
-                  id="fullname" 
+                <input
+                  type="text"
+                  class="form-control"
+                  id="fullname"
                   v-model="currentUser.fullname"
                   required
-                >
+                />
               </div>
               <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
-                <input 
-                  type="email" 
-                  class="form-control" 
-                  id="email" 
+                <input
+                  type="email"
+                  class="form-control"
+                  id="email"
                   v-model="currentUser.email"
                   required
-                >
+                />
               </div>
               <div class="mb-3">
                 <label for="password" class="form-label">Password</label>
-                <input 
-                  type="password" 
-                  class="form-control" 
-                  id="password" 
+                <input
+                  type="password"
+                  class="form-control"
+                  id="password"
                   v-model="currentUser.password"
                   :required="!isEditing"
-                >
+                />
               </div>
               <div class="mb-3 form-check">
-                <input 
-                  type="checkbox" 
-                  class="form-check-input" 
-                  id="admin" 
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  id="admin"
                   v-model="currentUser.admin"
-                >
-                <label class="form-check-label" for="admin">
-                  Admin User
-                </label>
+                />
+                <label class="form-check-label" for="admin"> Admin User </label>
               </div>
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-secondary" @click="hideModal">
+              Cancel
+            </button>
             <button type="button" class="btn btn-primary" @click="saveUser">
-              {{ isEditing ? 'Update' : 'Create' }}
+              {{ isEditing ? "Update" : "Create" }}
             </button>
           </div>
         </div>
@@ -130,90 +141,118 @@
 </template>
 
 <script>
-import { ref, onMounted, inject } from 'vue'
-import { userService } from '../services/api'
-import bootstrap from 'bootstrap'
+import { ref, onMounted, inject } from "vue";
+import { userService } from "../services/api";
+// No bootstrap import needed
 
 export default {
-  name: 'Users',
+  name: "Users",
   setup() {
-    const { showNotification } = inject('notification')
-    const users = ref([])
-    const loading = ref(false)
-    const isEditing = ref(false)
+    const { showNotification } = inject("notification");
+    const users = ref([]);
+    const loading = ref(false);
+    const isEditing = ref(false);
     const currentUser = ref({
-      id: '',
-      fullname: '',
-      email: '',
-      password: '',
-      admin: false
-    })
+      id: "",
+      fullname: "",
+      email: "",
+      password: "",
+      admin: false,
+    });
 
     const loadUsers = async () => {
-      loading.value = true
+      loading.value = true;
       try {
-        const response = await userService.getAll()
-        users.value = response.data || []
+        const response = await userService.getAll();
+        users.value = response.data || [];
       } catch (error) {
-        showNotification('danger', 'Error', 'Failed to load users')
+        showNotification("danger", "Error", "Failed to load users");
       } finally {
-        loading.value = false
+        loading.value = false;
       }
-    }
+    };
 
     const showCreateModal = () => {
-      isEditing.value = false
+      isEditing.value = false;
       currentUser.value = {
-        id: '',
-        fullname: '',
-        email: '',
-        password: '',
-        admin: false
-      }
-      const modal = new bootstrap.Modal(document.getElementById('userModal'))
-      modal.show()
-    }
+        id: "",
+        fullname: "",
+        email: "",
+        password: "",
+        admin: false,
+      };
+      const modalElement = document.getElementById("userModal");
+      modalElement.classList.add("show");
+      modalElement.style.display = "block";
+      document.body.classList.add("modal-open");
+
+      // Add backdrop
+      const backdrop = document.createElement("div");
+      backdrop.className = "modal-backdrop fade show";
+      backdrop.id = "modal-backdrop";
+      document.body.appendChild(backdrop);
+    };
 
     const editUser = (user) => {
-      isEditing.value = true
-      currentUser.value = { ...user, password: '' }
-      const modal = new bootstrap.Modal(document.getElementById('userModal'))
-      modal.show()
-    }
+      isEditing.value = true;
+      currentUser.value = { ...user, password: "" };
+      const modalElement = document.getElementById("userModal");
+      modalElement.classList.add("show");
+      modalElement.style.display = "block";
+      document.body.classList.add("modal-open");
+
+      // Add backdrop
+      const backdrop = document.createElement("div");
+      backdrop.className = "modal-backdrop fade show";
+      backdrop.id = "modal-backdrop";
+      document.body.appendChild(backdrop);
+    };
 
     const saveUser = async () => {
       try {
         if (isEditing.value) {
-          await userService.update(currentUser.value.id, currentUser.value)
-          showNotification('success', 'Success', 'User updated successfully')
+          await userService.update(currentUser.value.id, currentUser.value);
+          showNotification("success", "Success", "User updated successfully");
         } else {
-          await userService.create(currentUser.value)
-          showNotification('success', 'Success', 'User created successfully')
+          await userService.create(currentUser.value);
+          showNotification("success", "Success", "User created successfully");
         }
-        
-        const modal = bootstrap.Modal.getInstance(document.getElementById('userModal'))
-        modal.hide()
-        loadUsers()
+
+        hideModal();
+        loadUsers();
       } catch (error) {
-        showNotification('danger', 'Error', 'Failed to save user')
+        showNotification("danger", "Error", "Failed to save user");
       }
-    }
+    };
 
     const deleteUser = async (id) => {
-      if (confirm('Are you sure you want to delete this user?')) {
+      if (confirm("Are you sure you want to delete this user?")) {
         try {
-          await userService.delete(id)
-          showNotification('success', 'Success', 'User deleted successfully')
-          loadUsers()
+          await userService.delete(id);
+          showNotification("success", "Success", "User deleted successfully");
+          loadUsers();
         } catch (error) {
-          showNotification('danger', 'Error', 'Failed to delete user')
+          showNotification("danger", "Error", "Failed to delete user");
         }
       }
-    }
+    };
+
+    const hideModal = () => {
+      const modalElement = document.getElementById("userModal");
+      modalElement.classList.remove("show");
+      modalElement.style.display = "none";
+      document.body.classList.remove("modal-open");
+
+      // Remove backdrop
+      const backdrop = document.getElementById("modal-backdrop");
+      if (backdrop) {
+        backdrop.remove();
+      }
+    };
 
     onMounted(() => {
-      loadUsers()
-    })
+      loadUsers();
+    });
 
     return {
       users,
@@ -223,8 +262,9 @@ export default {
       showCreateModal,
       editUser,
       saveUser,
-      deleteUser
-    }
-  }
-}
+      deleteUser,
+      hideModal,
+    };
+  },
+};
 </script>

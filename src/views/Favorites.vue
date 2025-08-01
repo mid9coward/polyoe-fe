@@ -35,10 +35,16 @@
                 <td>{{ favorite.videoId }}</td>
                 <td>{{ formatDate(favorite.likeDate) }}</td>
                 <td>
-                  <button class="btn btn-sm btn-outline-primary me-2" @click="editFavorite(favorite)">
+                  <button
+                    class="btn btn-sm btn-outline-primary me-2"
+                    @click="editFavorite(favorite)"
+                  >
                     <i class="fas fa-edit"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-danger" @click="deleteFavorite(favorite.id)">
+                  <button
+                    class="btn btn-sm btn-outline-danger"
+                    @click="deleteFavorite(favorite.id)"
+                  >
                     <i class="fas fa-trash"></i>
                   </button>
                 </td>
@@ -54,58 +60,62 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">{{ isEditing ? 'Edit Favorite' : 'Create Favorite' }}</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <h5 class="modal-title">
+              {{ isEditing ? "Edit Favorite" : "Create Favorite" }}
+            </h5>
+            <button type="button" class="btn-close" @click="hideModal"></button>
           </div>
           <div class="modal-body">
             <form @submit.prevent="saveFavorite">
               <div class="mb-3">
                 <label for="favoriteId" class="form-label">Favorite ID</label>
-                <input 
-                  type="number" 
-                  class="form-control" 
-                  id="favoriteId" 
+                <input
+                  type="number"
+                  class="form-control"
+                  id="favoriteId"
                   v-model="currentFavorite.id"
                   :disabled="isEditing"
                   required
-                >
+                />
               </div>
               <div class="mb-3">
                 <label for="userId" class="form-label">User ID</label>
-                <input 
-                  type="text" 
-                  class="form-control" 
-                  id="userId" 
+                <input
+                  type="text"
+                  class="form-control"
+                  id="userId"
                   v-model="currentFavorite.userId"
                   required
-                >
+                />
               </div>
               <div class="mb-3">
                 <label for="videoId" class="form-label">Video ID</label>
-                <input 
-                  type="text" 
-                  class="form-control" 
-                  id="videoId" 
+                <input
+                  type="text"
+                  class="form-control"
+                  id="videoId"
                   v-model="currentFavorite.videoId"
                   required
-                >
+                />
               </div>
               <div class="mb-3">
                 <label for="likeDate" class="form-label">Like Date</label>
-                <input 
-                  type="date" 
-                  class="form-control" 
-                  id="likeDate" 
+                <input
+                  type="date"
+                  class="form-control"
+                  id="likeDate"
                   v-model="currentFavorite.likeDate"
                   required
-                >
+                />
               </div>
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-secondary" @click="hideModal">
+              Cancel
+            </button>
             <button type="button" class="btn btn-danger" @click="saveFavorite">
-              {{ isEditing ? 'Update' : 'Create' }}
+              {{ isEditing ? "Update" : "Create" }}
             </button>
           </div>
         </div>
@@ -115,96 +125,137 @@
 </template>
 
 <script>
-import { ref, onMounted, inject } from 'vue'
-import { favoriteService } from '../services/api'
-import bootstrap from 'bootstrap'
+import { ref, onMounted, inject } from "vue";
+import { favoriteService } from "../services/api";
 
 export default {
-  name: 'Favorites',
+  name: "Favorites",
   setup() {
-    const { showNotification } = inject('notification')
-    const favorites = ref([])
-    const loading = ref(false)
-    const isEditing = ref(false)
+    const { showNotification } = inject("notification");
+    const favorites = ref([]);
+    const loading = ref(false);
+    const isEditing = ref(false);
     const currentFavorite = ref({
       id: null,
-      userId: '',
-      videoId: '',
-      likeDate: ''
-    })
+      userId: "",
+      videoId: "",
+      likeDate: "",
+    });
 
     const formatDate = (dateString) => {
-      if (!dateString) return ''
-      return new Date(dateString).toLocaleDateString()
-    }
+      if (!dateString) return "";
+      return new Date(dateString).toLocaleDateString();
+    };
 
     const loadFavorites = async () => {
-      loading.value = true
+      loading.value = true;
       try {
-        const response = await favoriteService.getAll()
-        favorites.value = response.data || []
+        const response = await favoriteService.getAll();
+        favorites.value = response.data || [];
       } catch (error) {
-        showNotification('danger', 'Error', 'Failed to load favorites')
+        showNotification("danger", "Error", "Failed to load favorites");
       } finally {
-        loading.value = false
+        loading.value = false;
       }
-    }
+    };
 
     const showCreateModal = () => {
-      isEditing.value = false
+      isEditing.value = false;
       currentFavorite.value = {
         id: null,
-        userId: '',
-        videoId: '',
-        likeDate: new Date().toISOString().split('T')[0]
-      }
-      const modal = new bootstrap.Modal(document.getElementById('favoriteModal'))
-      modal.show()
-    }
+        userId: "",
+        videoId: "",
+        likeDate: new Date().toISOString().split("T")[0],
+      };
+      const modalElement = document.getElementById("favoriteModal");
+      modalElement.classList.add("show");
+      modalElement.style.display = "block";
+      document.body.classList.add("modal-open");
+
+      const backdrop = document.createElement("div");
+      backdrop.className = "modal-backdrop fade show";
+      backdrop.id = "modal-backdrop";
+      document.body.appendChild(backdrop);
+    };
 
     const editFavorite = (favorite) => {
-      isEditing.value = true
-      currentFavorite.value = { 
+      isEditing.value = true;
+      currentFavorite.value = {
         ...favorite,
-        likeDate: favorite.likeDate ? new Date(favorite.likeDate).toISOString().split('T')[0] : ''
-      }
-      const modal = new bootstrap.Modal(document.getElementById('favoriteModal'))
-      modal.show()
-    }
+        likeDate: favorite.likeDate
+          ? new Date(favorite.likeDate).toISOString().split("T")[0]
+          : "",
+      };
+      const modalElement = document.getElementById("favoriteModal");
+      modalElement.classList.add("show");
+      modalElement.style.display = "block";
+      document.body.classList.add("modal-open");
+
+      const backdrop = document.createElement("div");
+      backdrop.className = "modal-backdrop fade show";
+      backdrop.id = "modal-backdrop";
+      document.body.appendChild(backdrop);
+    };
 
     const saveFavorite = async () => {
       try {
         if (isEditing.value) {
-          await favoriteService.update(currentFavorite.value.id, currentFavorite.value)
-          showNotification('success', 'Success', 'Favorite updated successfully')
+          await favoriteService.update(
+            currentFavorite.value.id,
+            currentFavorite.value
+          );
+          showNotification(
+            "success",
+            "Success",
+            "Favorite updated successfully"
+          );
         } else {
-          await favoriteService.create(currentFavorite.value)
-          showNotification('success', 'Success', 'Favorite created successfully')
+          await favoriteService.create(currentFavorite.value);
+          showNotification(
+            "success",
+            "Success",
+            "Favorite created successfully"
+          );
         }
-        
-        const modal = bootstrap.Modal.getInstance(document.getElementById('favoriteModal'))
-        modal.hide()
-        loadFavorites()
+
+        hideModal();
+        loadFavorites();
       } catch (error) {
-        showNotification('danger', 'Error', 'Failed to save favorite')
+        showNotification("danger", "Error", "Failed to save favorite");
       }
-    }
+    };
 
     const deleteFavorite = async (id) => {
-      if (confirm('Are you sure you want to delete this favorite?')) {
+      if (confirm("Are you sure you want to delete this favorite?")) {
         try {
-          await favoriteService.delete(id)
-          showNotification('success', 'Success', 'Favorite deleted successfully')
-          loadFavorites()
+          await favoriteService.delete(id);
+          showNotification(
+            "success",
+            "Success",
+            "Favorite deleted successfully"
+          );
+          loadFavorites();
         } catch (error) {
-          showNotification('danger', 'Error', 'Failed to delete favorite')
+          showNotification("danger", "Error", "Failed to delete favorite");
         }
       }
-    }
+    };
+
+    const hideModal = () => {
+      const modalElement = document.getElementById("favoriteModal");
+      modalElement.classList.remove("show");
+      modalElement.style.display = "none";
+      document.body.classList.remove("modal-open");
+
+      const backdrop = document.getElementById("modal-backdrop");
+      if (backdrop) {
+        backdrop.remove();
+      }
+    };
 
     onMounted(() => {
-      loadFavorites()
-    })
+      loadFavorites();
+    });
 
     return {
       favorites,
@@ -215,8 +266,9 @@ export default {
       showCreateModal,
       editFavorite,
       saveFavorite,
-      deleteFavorite
-    }
-  }
-}
+      deleteFavorite,
+      hideModal,
+    };
+  },
+};
 </script>

@@ -9,22 +9,6 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token
-api.interceptors.request.use(
-  (config) => {
-    const currentUser = JSON.parse(
-      localStorage.getItem("currentUser") || "null"
-    );
-    if (currentUser && currentUser.token) {
-      config.headers.Authorization = `Bearer ${currentUser.token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
 // Response interceptor to handle API response format
 // This will now return the full ApiResponse object from the backend
 // e.g., { status: 200, success: true, data: [...], message: "..." }

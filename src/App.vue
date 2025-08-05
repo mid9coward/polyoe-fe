@@ -83,10 +83,7 @@
               >
                 <i class="fas fa-user me-1"></i>Tài Khoản
               </a>
-              <ul
-                class="dropdown-menu dropdown-menu-end"
-                aria-labelledby="accountDropdown"
-              >
+              <ul class="dropdown-menu" aria-labelledby="accountDropdown">
                 <li>
                   <router-link class="dropdown-item" to="/login">
                     <i class="fas fa-sign-in-alt me-2"></i>Đăng Nhập
@@ -116,7 +113,16 @@
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
               >
-                <i class="fas fa-user-circle me-1"></i>
+                <img
+                  :src="
+                    currentUser.avatarUrl
+                      ? `http://localhost:1212${currentUser.avatarUrl}`
+                      : '/default-avatar.png'
+                  "
+                  alt="Avatar"
+                  class="rounded-circle me-1"
+                  style="width: 24px; height: 24px; object-fit: cover"
+                />
                 {{ currentUser.fullname || currentUser.id }}
               </a>
               <ul
@@ -152,16 +158,16 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-light py-4">
+    <footer class="bg-dark text-light py-4 mt-5">
       <div class="container">
         <div class="row">
           <div class="col-md-6">
             <h5 class="fw-bold mb-3">
               <i class="fas fa-video me-2"></i>Online Entertainment
             </h5>
-            <p>
-              Nền tảng giải trí trực tuyến hàng đầu với những nội dung được
-              chuẩn bị kĩ lưỡng và chất lượng cao.
+            <p class="text-muted">
+              Nền tảng giải trí trực tuyến hàng đầu với những tiểu phẩm hài hước
+              và chất lượng cao.
             </p>
           </div>
           <div class="col-md-6">
@@ -187,12 +193,14 @@
 
         <div class="row align-items-center">
           <div class="col-md-6">
-            <p class="small mb-0">
+            <p class="text-muted small mb-0">
               © {{ currentYear }} Online Entertainment. All rights reserved.
             </p>
           </div>
           <div class="col-md-6 text-md-end">
-            <p class="small mb-0">Được phát triển dành cho Assignment Java 4</p>
+            <p class="text-muted small mb-0">
+              Được phát triển bởi Java 4 Assignment
+            </p>
           </div>
         </div>
       </div>
@@ -242,8 +250,14 @@ export default {
     // Load user from localStorage on app start
     onMounted(() => {
       const savedUser = localStorage.getItem("currentUser");
-      if (savedUser) {
-        currentUser.value = JSON.parse(savedUser);
+      if (savedUser && savedUser !== "undefined") {
+        try {
+          currentUser.value = JSON.parse(savedUser);
+        } catch (e) {
+          console.error("Error parsing currentUser from localStorage:", e);
+          localStorage.removeItem("currentUser"); // Clear invalid data
+          currentUser.value = null; // Ensure currentUser is null
+        }
       }
     });
 

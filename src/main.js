@@ -4,6 +4,7 @@ import App from "./App.vue";
 
 // Bootstrap CSS only
 import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 // Components
 import Home from "./views/Home.vue";
@@ -70,7 +71,16 @@ const router = createRouter({
 
 // Route guard - Authentication & Authorization
 router.beforeEach((to, from, next) => {
-  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+  const savedUserString = localStorage.getItem("currentUser");
+  let currentUser = null;
+  if (savedUserString && savedUserString !== "undefined") {
+    try {
+      currentUser = JSON.parse(savedUserString);
+    } catch (e) {
+      console.error("Error parsing currentUser in router guard:", e);
+      localStorage.removeItem("currentUser"); // Clear invalid data
+    }
+  }
 
   // Check if route requires authentication
   if (to.meta.requiresAuth && !currentUser) {

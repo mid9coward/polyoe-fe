@@ -1,192 +1,194 @@
 <template>
-  <div class="admin-users">
-    <div class="container py-4">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>
-          <i class="fas fa-users me-2"></i>
-          Quản Lý Người Dùng
-        </h2>
+  <div class="container py-5">
+    <h2 class="mb-4">Quản Lý Người Dùng</h2>
+
+    <div class="d-flex justify-content-between mb-3">
+      <button class="btn btn-primary" @click="openCreateUserModal">
+        <i class="fas fa-plus me-2"></i>Thêm Người Dùng Mới
+      </button>
+      <div class="input-group w-25">
+        <input
+          type="text"
+          class="form-control"
+          placeholder="Tìm kiếm người dùng..."
+          v-model="searchQuery"
+        />
+        <button
+          class="btn btn-outline-secondary"
+          type="button"
+          @click="fetchUsers"
+        >
+          <i class="fas fa-search"></i>
+        </button>
       </div>
+    </div>
 
-      <div class="row">
-        <!-- Form Section -->
-        <div class="col-lg-4">
-          <div class="card shadow-sm">
-            <div class="card-header">
-              <h5 class="mb-0">
-                {{ isEditing ? "Cập Nhật Người Dùng" : "Thông Tin Người Dùng" }}
-              </h5>
-            </div>
-            <div class="card-body">
-              <form @submit.prevent="saveUser">
-                <div class="mb-3">
-                  <label for="userId" class="form-label">User ID</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="userId"
-                    v-model="currentUser.id"
-                    disabled
-                  />
-                </div>
+    <div v-if="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Đang tải...</span>
+      </div>
+      <p class="mt-3">Đang tải danh sách người dùng...</p>
+    </div>
 
-                <div class="mb-3">
-                  <label for="fullname" class="form-label">Họ và tên</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="fullname"
-                    v-model="currentUser.fullname"
-                    :disabled="!isEditing"
-                    required
-                  />
-                </div>
+    <div v-else-if="users.length > 0" class="table-responsive">
+      <table
+        class="table table-hover table-striped shadow-sm rounded overflow-hidden"
+      >
+        <thead class="bg-primary text-white">
+          <tr>
+            <th>Avatar</th>
+            <th>ID</th>
+            <th>Họ Tên</th>
+            <th>Email</th>
+            <th>Quản Trị</th>
+            <th>Hành Động</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="user in filteredUsers" :key="user.id">
+            <td>
+              <img
+                :src="
+                  user.avatarUrl
+                    ? `http://localhost:1212${user.avatarUrl}`
+                    : '/default-avatar.png'
+                "
+                alt="Avatar"
+                class="rounded-circle"
+                style="width: 40px; height: 40px; object-fit: cover"
+              />
+            </td>
+            <td>{{ user.id }}</td>
+            <td>{{ user.fullname }}</td>
+            <td>{{ user.email }}</td>
+            <td>
+              <span
+                :class="user.admin ? 'badge bg-danger' : 'badge bg-primary'"
+              >
+                {{ user.admin ? "Có" : "Không" }}
+              </span>
+            </td>
+            <td>
+              <button
+                class="btn btn-sm btn-warning me-2"
+                @click="openEditUserModal(user)"
+              >
+                <i class="fas fa-edit"></i>
+              </button>
+              <button
+                class="btn btn-sm btn-danger"
+                @click="deleteUser(user.id)"
+              >
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div v-else class="alert alert-info text-center">
+      Không có người dùng nào được tìm thấy.
+    </div>
 
-                <div class="mb-3">
-                  <label for="email" class="form-label">Email</label>
-                  <input
-                    type="email"
-                    class="form-control"
-                    id="email"
-                    v-model="currentUser.email"
-                    :disabled="!isEditing"
-                    required
-                  />
-                </div>
-
-                <div class="mb-3 form-check">
-                  <input
-                    type="checkbox"
-                    class="form-check-input"
-                    id="admin"
-                    v-model="currentUser.admin"
-                    :disabled="!isEditing"
-                  />
-                  <label class="form-check-label" for="admin">
-                    Quản trị viên
-                  </label>
-                </div>
-
-                <div class="d-grid gap-2" v-if="isEditing">
-                  <button
-                    type="submit"
-                    class="btn btn-primary"
-                    :disabled="loading"
-                  >
-                    <i class="fas fa-save me-1"></i>Cập Nhật
-                  </button>
-
-                  <button
-                    type="button"
-                    class="btn btn-danger"
-                    @click="deleteUser"
-                    :disabled="loading"
-                  >
-                    <i class="fas fa-trash me-1"></i>Xóa
-                  </button>
-                </div>
-              </form>
-            </div>
+    <!-- User Modal (Create/Edit) -->
+    <div
+      class="modal fade"
+      id="userModal"
+      tabindex="-1"
+      aria-labelledby="userModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="userModalLabel">
+              {{ isEditMode ? "Chỉnh Sửa Người Dùng" : "Thêm Người Dùng Mới" }}
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
           </div>
-        </div>
-
-        <!-- Users List Section -->
-        <div class="col-lg-8">
-          <div class="card shadow-sm">
-            <div class="card-header">
-              <h5 class="mb-0">Danh Sách Người Dùng</h5>
-            </div>
-            <div class="card-body">
-              <!-- Loading -->
-              <div v-if="loading" class="text-center py-4">
-                <div class="spinner-border text-primary" role="status">
-                  <span class="visually-hidden">Đang tải...</span>
-                </div>
+          <div class="modal-body">
+            <form @submit.prevent="saveUser">
+              <div class="mb-3">
+                <label for="userId" class="form-label">ID Người Dùng</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="userId"
+                  v-model="currentEditUser.id"
+                  :disabled="isEditMode"
+                  required
+                />
               </div>
-
-              <!-- Users Table -->
-              <div v-else class="table-responsive">
-                <table class="table table-hover">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Họ và tên</th>
-                      <th>Email</th>
-                      <th>Vai trò</th>
-                      <th>Thao tác</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="user in paginatedUsers" :key="user.id">
-                      <td>
-                        <strong>{{ user.id }}</strong>
-                      </td>
-                      <td>{{ user.fullname }}</td>
-                      <td>{{ user.email }}</td>
-                      <td>
-                        <span
-                          class="badge"
-                          :class="user.admin ? 'bg-danger' : 'bg-primary'"
-                        >
-                          {{ user.admin ? "Admin" : "User" }}
-                        </span>
-                      </td>
-                      <td>
-                        <button
-                          class="btn btn-sm btn-outline-primary"
-                          @click="editUser(user)"
-                        >
-                          <i class="fas fa-edit"></i>
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div class="mb-3">
+                <label for="userPassword" class="form-label">Mật Khẩu</label>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="userPassword"
+                  v-model="currentEditUser.password"
+                  :required="!isEditMode"
+                />
+                <small v-if="isEditMode" class="form-text text-muted"
+                  >Để trống nếu không muốn thay đổi mật khẩu.</small
+                >
               </div>
-
-              <!-- Pagination -->
-              <nav v-if="totalPages > 1" class="mt-4">
-                <div class="d-flex justify-content-center">
-                  <div class="btn-group" role="group">
-                    <button
-                      class="btn btn-outline-primary btn-sm"
-                      @click="goToPage(1)"
-                      :disabled="currentPage === 1"
-                      title="Trang đầu"
-                    >
-                      <i class="fas fa-angle-double-left"></i>
-                    </button>
-                    <button
-                      class="btn btn-outline-primary btn-sm"
-                      @click="goToPage(currentPage - 1)"
-                      :disabled="currentPage === 1"
-                      title="Trang trước"
-                    >
-                      <i class="fas fa-angle-left"></i>
-                    </button>
-                    <span class="btn btn-primary btn-sm disabled">
-                      {{ currentPage }} / {{ totalPages }}
-                    </span>
-                    <button
-                      class="btn btn-outline-primary btn-sm"
-                      @click="goToPage(currentPage + 1)"
-                      :disabled="currentPage === totalPages"
-                      title="Trang sau"
-                    >
-                      <i class="fas fa-angle-right"></i>
-                    </button>
-                    <button
-                      class="btn btn-outline-primary btn-sm"
-                      @click="goToPage(totalPages)"
-                      :disabled="currentPage === totalPages"
-                      title="Trang cuối"
-                    >
-                      <i class="fas fa-angle-double-right"></i>
-                    </button>
-                  </div>
-                </div>
-              </nav>
-            </div>
+              <div class="mb-3">
+                <label for="userFullname" class="form-label">Họ Tên</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="userFullname"
+                  v-model="currentEditUser.fullname"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="userEmail" class="form-label">Email</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  id="userEmail"
+                  v-model="currentEditUser.email"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="userBio" class="form-label">Bio</label>
+                <textarea
+                  class="form-control"
+                  id="userBio"
+                  rows="3"
+                  v-model="currentEditUser.bio"
+                  placeholder="Thông tin giới thiệu..."
+                ></textarea>
+              </div>
+              <div class="form-check mb-3">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="userAdmin"
+                  v-model="currentEditUser.admin"
+                />
+                <label class="form-check-label" for="userAdmin">
+                  Là Quản Trị Viên
+                </label>
+              </div>
+              <button type="submit" class="btn btn-primary" :disabled="saving">
+                <span
+                  v-if="saving"
+                  class="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+                <span v-if="saving">Đang lưu...</span>
+                <span v-else>Lưu</span>
+              </button>
+            </form>
           </div>
         </div>
       </div>
@@ -195,134 +197,162 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, inject } from "vue";
+import { ref, onMounted, computed, inject } from "vue";
 import { userService } from "../../services/api";
+import { Modal } from "bootstrap";
 
 export default {
   name: "AdminUsers",
   setup() {
     const { showNotification } = inject("notification");
-
     const users = ref([]);
-    const loading = ref(false);
-    const isEditing = ref(false);
-    const currentPage = ref(1);
-    const usersPerPage = 10;
-
-    const currentUser = ref({
+    const loading = ref(true);
+    const searchQuery = ref("");
+    const currentEditUser = ref({
       id: "",
+      password: "",
       fullname: "",
       email: "",
       admin: false,
+      bio: "",
+      avatarUrl: "", // Không set default avatar ở đây, để backend hoặc frontend tự xử lý
     });
+    const isEditMode = ref(false);
+    const saving = ref(false);
 
-    // Computed
-    const totalPages = computed(() =>
-      Math.ceil(users.value.length / usersPerPage)
-    );
+    let userModalInstance = null;
 
-    const paginatedUsers = computed(() => {
-      const start = (currentPage.value - 1) * usersPerPage;
-      const end = start + usersPerPage;
-      return users.value.slice(start, end);
-    });
-
-    // Methods
-    const loadUsers = async () => {
+    const fetchUsers = async () => {
       loading.value = true;
       try {
         const response = await userService.getAll();
-        users.value = response.data || [];
+        users.value = response.data;
       } catch (error) {
-        showNotification("danger", "Lỗi", "Không thể tải danh sách người dùng");
+        console.error("Error fetching users:", error);
+        showNotification(
+          "danger",
+          "Lỗi",
+          error.message || "Không thể tải danh sách người dùng."
+        );
       } finally {
         loading.value = false;
       }
     };
 
-    const editUser = (user) => {
-      isEditing.value = true;
-      currentUser.value = { ...user };
+    const filteredUsers = computed(() => {
+      if (!searchQuery.value) {
+        return users.value;
+      }
+      const query = searchQuery.value.toLowerCase();
+      return users.value.filter(
+        (user) =>
+          user.id.toLowerCase().includes(query) ||
+          user.fullname.toLowerCase().includes(query) ||
+          user.email.toLowerCase().includes(query)
+      );
+    });
+
+    const openCreateUserModal = () => {
+      isEditMode.value = false;
+      currentEditUser.value = {
+        id: "",
+        password: "",
+        fullname: "",
+        email: "",
+        admin: false,
+        bio: "",
+        avatarUrl: "", // Để rỗng, frontend sẽ dùng ảnh mặc định cục bộ
+      };
+      if (userModalInstance) {
+        userModalInstance.show();
+      }
+    };
+
+    const openEditUserModal = (user) => {
+      isEditMode.value = true;
+      currentEditUser.value = { ...user }; // Copy user data to form
+      if (userModalInstance) {
+        userModalInstance.show();
+      }
     };
 
     const saveUser = async () => {
-      loading.value = true;
-
+      saving.value = true;
       try {
-        await userService.update(currentUser.value.id, currentUser.value);
-        showNotification(
-          "success",
-          "Thành công",
-          "Người dùng đã được cập nhật"
-        );
-        loadUsers();
+        if (isEditMode.value) {
+          // If password is empty, do not send it to backend for update
+          const userToUpdate = { ...currentEditUser.value };
+          if (!userToUpdate.password) {
+            delete userToUpdate.password; // Remove password field if empty
+          }
+          await userService.update(userToUpdate.id, userToUpdate);
+          showNotification(
+            "success",
+            "Thành công",
+            "Người dùng đã được cập nhật."
+          );
+        } else {
+          await userService.create(currentEditUser.value);
+          showNotification(
+            "success",
+            "Thành công",
+            "Người dùng mới đã được thêm."
+          );
+        }
+        if (userModalInstance) {
+          userModalInstance.hide();
+        }
+        fetchUsers(); // Refresh list
       } catch (error) {
-        showNotification("danger", "Lỗi", "Không thể cập nhật người dùng");
+        console.error("Error saving user:", error);
+        showNotification(
+          "danger",
+          "Lỗi",
+          error.message || "Không thể lưu người dùng."
+        );
       } finally {
-        loading.value = false;
+        saving.value = false;
       }
     };
 
-    const deleteUser = async () => {
-      if (confirm("Bạn có chắc muốn xóa người dùng này?")) {
-        loading.value = true;
-
+    const deleteUser = async (id) => {
+      if (confirm("Bạn có chắc chắn muốn xóa người dùng này?")) {
         try {
-          await userService.delete(currentUser.value.id);
-          showNotification("success", "Thành công", "Người dùng đã được xóa");
-          isEditing.value = false;
-          currentUser.value = { id: "", fullname: "", email: "", admin: false };
-          loadUsers();
+          await userService.delete(id);
+          showNotification("success", "Thành công", "Người dùng đã được xóa.");
+          fetchUsers(); // Refresh list
         } catch (error) {
-          showNotification("danger", "Lỗi", "Không thể xóa người dùng");
-        } finally {
-          loading.value = false;
+          console.error("Error deleting user:", error);
+          showNotification(
+            "danger",
+            "Lỗi",
+            error.message || "Không thể xóa người dùng."
+          );
         }
       }
     };
 
-    const goToPage = (page) => {
-      if (page >= 1 && page <= totalPages.value) {
-        currentPage.value = page;
-        isEditing.value = false;
-        currentUser.value = { id: "", fullname: "", email: "", admin: false };
-      }
-    };
-
     onMounted(() => {
-      loadUsers();
+      fetchUsers();
+      const userModalElement = document.getElementById("userModal");
+      if (userModalElement) {
+        userModalInstance = new Modal(userModalElement);
+      }
     });
 
     return {
       users,
       loading,
-      isEditing,
-      currentPage,
-      totalPages,
-      currentUser,
-      paginatedUsers,
-      loadUsers,
-      editUser,
+      searchQuery,
+      filteredUsers,
+      currentEditUser,
+      isEditMode,
+      saving,
+      openCreateUserModal,
+      openEditUserModal,
       saveUser,
       deleteUser,
-      goToPage,
     };
   },
 };
 </script>
-
-<style scoped>
-.table th {
-  background-color: #f8f9fa;
-  font-weight: 600;
-}
-
-.btn-group .btn {
-  border-radius: 0.375rem;
-  margin-right: 0.25rem;
-}
-
-.btn-group .btn:last-child {
-  margin-right: 0;
-}
-</style>

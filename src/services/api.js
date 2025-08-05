@@ -47,6 +47,16 @@ export const userService = {
   changePassword: (passwordData) =>
     api.put("/users/change-password", passwordData),
   updateProfile: (profileData) => api.put("/users/profile", profileData),
+  // NEW: Upload avatar
+  uploadAvatar: (userId, file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return api.post(`/users/${userId}/avatar`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
 };
 
 // Video Service
@@ -62,7 +72,7 @@ export const videoService = {
     api.get(`/videos/top?page=${page}&size=${size}`),
   incrementViews: (id) => api.post(`/videos/${id}/view`),
   getTopActiveVideos: (page = 0, size = 6) =>
-    api.get(`/videos/top-active?page=${page}&size=${size}`), // Thêm dòng này
+    api.get(`/videos/top-active?page=${page}&size=${size}`),
 };
 
 // Favorite Service

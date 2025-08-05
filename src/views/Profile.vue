@@ -4,7 +4,22 @@
       <div class="col-lg-4">
         <div class="card shadow-sm">
           <div class="card-body text-center">
-            <i class="fas fa-user-circle fa-5x text-primary mb-3"></i>
+            <!-- Avatar Display -->
+            <img
+              :src="
+                user.avatarUrl
+                  ? `http://localhost:1212${user.avatarUrl}`
+                  : '/default-avatar.png'
+              "
+              alt="User Avatar"
+              class="rounded-circle mb-3"
+              style="
+                width: 128px;
+                height: 128px;
+                object-fit: cover;
+                border: 3px solid #007bff;
+              "
+            />
             <h4>{{ user.fullname || user.id }}</h4>
             <p class="text-muted">
               {{ user.admin ? "Administrator" : "User" }}
@@ -15,6 +30,28 @@
             >
               {{ user.admin ? "Admin" : "Member" }}
             </span>
+
+            <!-- Avatar Upload -->
+            <div class="mt-3">
+              <label for="avatarUpload" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-upload me-1"></i>Tải ảnh đại diện
+              </label>
+              <input
+                type="file"
+                id="avatarUpload"
+                ref="avatarInput"
+                @change="handleAvatarUpload"
+                accept="image/*"
+                class="d-none"
+              />
+              <div
+                v-if="uploadingAvatar"
+                class="spinner-border spinner-border-sm text-primary ms-2"
+                role="status"
+              >
+                <span class="visually-hidden">Đang tải...</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -164,11 +201,12 @@ export default {
     const currentUser = inject("currentUser");
 
     const user = ref({
-      id: "", // Changed from username to id
+      id: "",
       fullname: "",
       email: "",
       bio: "",
-      admin: false, // Changed from isAdmin to admin
+      admin: false,
+      avatarUrl: "", // Thêm trường này
     });
 
     const userStats = ref({
@@ -183,10 +221,10 @@ export default {
       confirm: "",
     });
 
+    const uploadingAvatar = ref(false); // Trạng thái tải lên avatar
+
     onMounted(() => {
       if (currentUser.value) {
-        // When currentUser is set from localStorage, it's already the unwrapped user object
-        // So, we can assign it directly.
         user.value = { ...currentUser.value };
         loadUserStats();
       }
@@ -203,12 +241,9 @@ export default {
 
     const updateProfile = async () => {
       try {
-        // Gửi toàn bộ đối tượng user.value, bao gồm cả id
         const response = await userService.updateProfile(user.value);
 
-        // Update current user in local storage and reactive state
-        // Access response.data because api.js interceptor returns the full ApiResponse object
-        // and the actual user data is in response.data
+        // Cập nhật currentUser trong localStorage và trạng thái reactive
         Object.assign(currentUser.value, response.data);
         localStorage.setItem("currentUser", JSON.stringify(currentUser.value));
 
@@ -240,6 +275,7 @@ export default {
 
       try {
         await userService.changePassword({
+          userId: currentUser.value.id,
           currentPassword: passwordForm.value.current,
           newPassword: passwordForm.value.new,
         });
@@ -260,12 +296,72 @@ export default {
       }
     };
 
+    const handleAvatarUpload = async (event) => {
+      const file = event.target.files[0];
+      if (!file) {
+        return;
+      }
+
+      if (!file.type.startsWith("image/")) {
+        showNotification("danger", "Lỗi", "Vui lòng chọn một file ảnh hợp lệ.");
+        return;
+      }
+
+      if (file.size > 2 * 1024 * 1024) {
+        // Giới hạn 2MB
+        showNotification(
+          "danger",
+          "Lỗi",
+          "Kích thước ảnh không được vượt quá 2MB."
+        );
+        return;
+      }
+
+      uploadingAvatar.value = true;
+      try {
+        const response = await userService.uploadAvatar(
+          currentUser.value.id,
+          file
+        );
+
+        // Cập nhật avatarUrl trong user và currentUser
+        user.value.avatarUrl = response.data.avatarUrl;
+        Object.assign(currentUser.value, response.data);
+        localStorage.setItem("currentUser", JSON.stringify(currentUser.value));
+
+        console.log("Updated user.avatarUrl:", user.value.avatarUrl);
+        console.log(
+          "Updated currentUser.avatarUrl:",
+          currentUser.value.avatarUrl
+        );
+
+        showNotification(
+          "success",
+          "Thành công",
+          "Ảnh đại diện đã được cập nhật."
+        );
+      } catch (error) {
+        console.error("Upload avatar error:", error);
+        showNotification(
+          "danger",
+          "Lỗi",
+          error.message || "Không thể tải ảnh đại diện."
+        );
+      } finally {
+        uploadingAvatar.value = false;
+        // Reset input file để có thể chọn lại cùng một file nếu muốn
+        event.target.value = "";
+      }
+    };
+
     return {
       user,
       userStats,
       passwordForm,
+      uploadingAvatar,
       updateProfile,
       changePassword,
+      handleAvatarUpload,
     };
   },
 };

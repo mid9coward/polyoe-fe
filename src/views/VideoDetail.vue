@@ -121,28 +121,45 @@
                   :key="comment.id"
                   class="comment-item mb-3 p-3 border rounded"
                 >
-                  <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                      <strong class="text-primary">{{
-                        comment.user?.fullname || comment.userId
-                      }}</strong>
-                      <small class="text-muted ms-2">{{
-                        formatDate(comment.commentDate)
-                      }}</small>
-                    </div>
-                    <button
-                      v-if="
-                        currentUser &&
-                        (currentUser.id === comment.userId || currentUser.admin)
+                  <div class="d-flex align-items-start">
+                    <img
+                      :src="
+                        comment.user?.avatarUrl
+                          ? `http://localhost:1212${comment.user.avatarUrl}`
+                          : '/default-avatar.png'
                       "
-                      class="btn btn-sm btn-outline-danger"
-                      @click="deleteComment(comment.id)"
-                      title="Xóa bình luận"
-                    >
-                      <i class="fas fa-trash"></i>
-                    </button>
+                      alt="Avatar"
+                      class="rounded-circle me-3"
+                      style="width: 40px; height: 40px; object-fit: cover"
+                    />
+                    <div class="flex-grow-1">
+                      <div
+                        class="d-flex justify-content-between align-items-start"
+                      >
+                        <div>
+                          <strong class="text-primary">{{
+                            comment.user?.fullname || comment.userId
+                          }}</strong>
+                          <small class="text-muted ms-2">{{
+                            formatDate(comment.commentDate)
+                          }}</small>
+                        </div>
+                        <button
+                          v-if="
+                            currentUser &&
+                            (currentUser.id === comment.userId ||
+                              currentUser.admin)
+                          "
+                          class="btn btn-sm btn-outline-danger"
+                          @click="deleteComment(comment.id)"
+                          title="Xóa bình luận"
+                        >
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                      <p class="mt-2 mb-0">{{ comment.content }}</p>
+                    </div>
                   </div>
-                  <p class="mt-2 mb-0">{{ comment.content }}</p>
                 </div>
               </div>
               <div v-else class="text-center text-muted py-4">
@@ -251,14 +268,14 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, inject, watch } from "vue"; // Thêm watch
+import { ref, computed, onMounted, inject, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   videoService,
   favoriteService,
   shareService,
   commentService,
-} from "../services/api"; // Thêm commentService
+} from "../services/api";
 
 export default {
   name: "VideoDetail",
@@ -272,16 +289,16 @@ export default {
     const video = ref({});
     const viewedVideos = ref([]);
     const favorites = ref([]);
-    const comments = ref([]); // State cho bình luận
+    const comments = ref([]);
     const loading = ref(false);
-    const loadingComments = ref(false); // Loading state cho bình luận
-    const addingComment = ref(false); // Loading state khi thêm bình luận
+    const loadingComments = ref(false);
+    const addingComment = ref(false);
 
     // Forms
     const shareForm = ref({
       emails: "",
     });
-    const newCommentContent = ref(""); // Nội dung bình luận mới
+    const newCommentContent = ref("");
 
     // Computed
     const isLiked = computed(() => {
@@ -300,7 +317,7 @@ export default {
           await loadVideo();
           loadViewedVideos();
           loadFavorites();
-          await loadComments(); // Tải lại bình luận khi video thay đổi
+          await loadComments();
         }
       }
     );
@@ -322,7 +339,6 @@ export default {
 
     const loadViewedVideos = () => {
       const viewed = JSON.parse(localStorage.getItem("viewedVideos") || "[]");
-      // Loại bỏ video hiện tại khỏi danh sách đã xem
       viewedVideos.value = viewed.filter((v) => v.id !== video.value.id);
     };
 
@@ -346,7 +362,7 @@ export default {
         comments.value = response.data || [];
       } catch (error) {
         showNotification("danger", "Lỗi", "Không thể tải bình luận");
-        comments.value = []; // Đảm bảo comments là một mảng rỗng nếu có lỗi
+        comments.value = [];
       } finally {
         loadingComments.value = false;
       }
@@ -376,12 +392,20 @@ export default {
           videoId: video.value.id,
           userId: currentUser.value.id,
           content: newCommentContent.value.trim(),
-          commentDate: new Date().toISOString().split("T")[0], // Backend sẽ tự set, nhưng gửi đi để đồng bộ
+          commentDate: new Date().toISOString().split("T")[0],
         };
         const response = await commentService.addComment(newComment);
-        // Backend trả về comment đã được enrich với user, nên ta có thể thêm trực tiếp
-        comments.value.unshift(response.data); // Thêm vào đầu danh sách
-        newCommentContent.value = ""; // Xóa nội dung form
+        // Enrich the new comment with user information
+        const enrichedComment = {
+          ...response.data,
+          user: {
+            userId: currentUser.value.id,
+            fullname: currentUser.value.fullname,
+            avatarUrl: currentUser.value.avatarUrl,
+          },
+        };
+        comments.value.unshift(enrichedComment);
+        newCommentContent.value = "";
         showNotification(
           "success",
           "Thành công",
@@ -444,8 +468,6 @@ export default {
 
     const getYouTubeEmbedUrl = (url) => {
       if (!url) return "";
-
-      // Extract video ID from various YouTube URL formats
       let videoId = "";
       if (url.includes("youtube.com/watch?v=")) {
         videoId = url.split("v=")[1].split("&")[0];
@@ -454,7 +476,6 @@ export default {
       } else if (url.includes("youtube.com/embed/")) {
         videoId = url.split("embed/")[1].split("?")[0];
       }
-
       return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
     };
 
@@ -474,7 +495,6 @@ export default {
         );
 
         if (existingFavorite) {
-          // Unlike
           await favoriteService.delete(existingFavorite.id);
           favorites.value = favorites.value.filter(
             (fav) => fav.id !== existingFavorite.id
@@ -485,14 +505,13 @@ export default {
             "Video đã được bỏ khỏi danh sách yêu thích"
           );
         } else {
-          // Like
           const newFavorite = {
             userId: currentUser.value.id,
             videoId: video.value.id,
             likeDate: new Date().toISOString().split("T")[0],
           };
           const response = await favoriteService.create(newFavorite);
-          favorites.value.push(response.data); // response.data là ApiResponse, response.data.data là Favorite
+          favorites.value.push(response.data);
           showNotification(
             "success",
             "Đã thích",
@@ -533,7 +552,6 @@ export default {
       }
 
       try {
-        // Xử lý nhiều email
         const emails = shareForm.value.emails
           .split(/[,;]/)
           .map((email) => email.trim())
@@ -592,7 +610,7 @@ export default {
       await loadVideo();
       loadViewedVideos();
       loadFavorites();
-      await loadComments(); // Tải bình luận khi component được mount
+      await loadComments();
     });
 
     return {
@@ -601,12 +619,12 @@ export default {
       loading,
       shareForm,
       isLiked,
-      comments, // Export comments
-      newCommentContent, // Export newCommentContent
-      loadingComments, // Export loadingComments
-      addingComment, // Export addingComment
+      comments,
+      newCommentContent,
+      loadingComments,
+      addingComment,
       formatViews,
-      formatDate, // Export formatDate
+      formatDate,
       getYouTubeEmbedUrl,
       toggleLike,
       shareVideo,
@@ -614,9 +632,9 @@ export default {
       goToVideo,
       showShareModal,
       hideShareModal,
-      addComment, // Export addComment
-      deleteComment, // Export deleteComment
-      currentUser, // Export currentUser để kiểm tra quyền
+      addComment,
+      deleteComment,
+      currentUser,
     };
   },
 };

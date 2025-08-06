@@ -165,7 +165,7 @@
             <h5 class="fw-bold mb-3">
               <i class="fas fa-video me-2"></i>Online Entertainment
             </h5>
-            <p class="text-muted">
+            <p>
               Nền tảng giải trí trực tuyến hàng đầu với những tiểu phẩm hài hước
               và chất lượng cao.
             </p>
@@ -193,14 +193,12 @@
 
         <div class="row align-items-center">
           <div class="col-md-6">
-            <p class="text-muted small mb-0">
+            <p class="small mb-0">
               © {{ currentYear }} Online Entertainment. All rights reserved.
             </p>
           </div>
           <div class="col-md-6 text-md-end">
-            <p class="text-muted small mb-0">
-              Được phát triển bởi Java 4 Assignment
-            </p>
+            <p class="small mb-0">Được phát triển bởi Java 4 Assignment</p>
           </div>
         </div>
       </div>

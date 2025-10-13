@@ -1,46 +1,36 @@
-name: 🚀 Deploy Frontend to Netlify
+name: Deploy Frontend to Netlify
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout source code
-      - name: 🛎️ Checkout repository
+      - name: 🧩 Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup Node.js (Vite chạy ổn nhất trên Node 20)
-      - name: 🧱 Setup Node.js
+      - name: ⚙️ Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 18
           cache: "npm"
 
-      # 3️⃣ Cài dependencies
       - name: 📦 Install dependencies
         run: npm ci
 
-      # 4️⃣ Build project (Vite build ra thư mục dist)
       - name: 🏗️ Build project
         run: npm run build
 
-      # 5️⃣ Deploy to Netlify
       - name: 🚀 Deploy to Netlify
-        uses: nwtgck/actions-netlify@v2.0.1
+        uses: nwtgck/actions-netlify@v2
         with:
           publish-dir: ./dist
           production-deploy: true
-          deploy-message: "✅ Auto-deployed from GitHub Actions"
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          netlify-auth-token: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          netlify-site-id: ${{ secrets.NETLIFY_SITE_ID }}
-
-      # 6️⃣ Confirm deployment
-      - name: ✅ Confirm deployment
-        run: echo "🚀 Deployment completed successfully!"
+          deploy-message: "Auto-deployed from GitHub Actions 🚀"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

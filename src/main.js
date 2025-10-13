@@ -78,7 +78,7 @@ router.beforeEach((to, from, next) => {
       currentUser = JSON.parse(savedUserString);
     } catch (e) {
       console.error("Error parsing currentUser in router guard:", e);
-      localStorage.removeItem("currentUser"); // Clear invalid data
+      localStorage.removeItem("currentUser");
     }
   }
 

@@ -195,7 +195,7 @@
                     :alt="viewedVideo.title"
                   />
                   <div class="viewed-video-info flex-grow-1">
-                    <h6 class="mb-1 text-truncate">{{ viewedVideo.title }}</h6>
+                    <h6 class="mb-1">{{ viewedVideo.title }}</h6>
                     <small class="text-muted">
                       <i class="fas fa-eye me-1"></i
                       >{{ formatViews(viewedVideo.views) }}
@@ -686,21 +686,6 @@ export default {
 .comment-item {
   background-color: #f8f9fa;
   border-color: #e9ecef;
-}
-
-/* Dark theme adjustments for comments */
-.dark-theme .comment-item {
-  background-color: #3a3a3a;
-  border-color: #555555;
-  color: #ffffff;
-}
-
-.dark-theme .comment-item strong {
-  color: #90caf9; /* Lighter blue for names in dark mode */
-}
-
-.dark-theme .comment-item small {
-  color: #b0b0b0 !important;
 }
 
 @media (max-width: 768px) {

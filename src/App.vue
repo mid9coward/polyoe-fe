@@ -183,7 +183,7 @@
               </li>
               <li class="mb-2">
                 <i class="fas fa-map-marker-alt me-2"></i>
-                Hà Nội, Việt Nam
+                Hồ Chí Minh, Việt Nam
               </li>
             </ul>
           </div>
@@ -253,8 +253,8 @@ export default {
           currentUser.value = JSON.parse(savedUser);
         } catch (e) {
           console.error("Error parsing currentUser from localStorage:", e);
-          localStorage.removeItem("currentUser"); // Clear invalid data
-          currentUser.value = null; // Ensure currentUser is null
+          localStorage.removeItem("currentUser");
+          currentUser.value = null;
         }
       }
     });

@@ -105,6 +105,7 @@
                   <button
                     v-if="!isEditing"
                     type="submit"
+                    id="btnCreate"
                     class="btn btn-success"
                     :disabled="loading"
                   >
@@ -113,6 +114,7 @@
 
                   <button
                     v-if="isEditing"
+                    id="btnUpdate"
                     type="submit"
                     class="btn btn-primary"
                     :disabled="loading"
@@ -122,6 +124,7 @@
 
                   <button
                     v-if="isEditing"
+                    id="btnDelete"
                     type="button"
                     class="btn btn-danger"
                     @click="deleteVideo"
@@ -131,6 +134,13 @@
                   </button>
                 </div>
               </form>
+              <div
+                v-if="message"
+                id="alertMessage"
+                class="alert alert-info mt-3"
+              >
+                {{ message }}
+              </div>
             </div>
           </div>
         </div>
@@ -376,6 +386,7 @@ export default {
 
     onMounted(() => {
       loadVideos();
+      console.log("isEditing ban đầu:", isEditing.value);
     });
 
     return {

@@ -116,7 +116,7 @@
                 <img
                   :src="
                     currentUser.avatarUrl
-                      ? `http://localhost:1212${currentUser.avatarUrl}`
+                      ? `https://poly-backend.onrender.com${currentUser.avatarUrl}`
                       : '/default-avatar.png'
                   "
                   alt="Avatar"

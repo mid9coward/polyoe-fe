@@ -37,7 +37,7 @@ Vue.js frontend application for the Video Management System.
 
 ## Configuration
 
-The frontend is configured to connect to the backend API at `http://localhost:1212/api`. 
+The frontend is configured to connect to the backend API at `https://poly-backend.onrender.com/api`.
 
 Make sure your backend server is running before starting the frontend application.
 
@@ -45,17 +45,17 @@ Make sure your backend server is running before starting the frontend applicatio
 
 \`\`\`
 src/
-├── views/              # Page components
-│   ├── Home.vue
-│   ├── Users.vue
-│   ├── Videos.vue
-│   ├── Favorites.vue
-│   ├── Shares.vue
-│   └── ViewHistories.vue
-├── services/           # API services
-│   └── api.js
-├── App.vue            # Root component
-└── main.js            # Application entry point
+├── views/ # Page components
+│ ├── Home.vue
+│ ├── Users.vue
+│ ├── Videos.vue
+│ ├── Favorites.vue
+│ ├── Shares.vue
+│ └── ViewHistories.vue
+├── services/ # API services
+│ └── api.js
+├── App.vue # Root component
+└── main.js # Application entry point
 \`\`\`
 
 ## API Integration
@@ -71,21 +71,25 @@ The application integrates with the following backend endpoints:
 ## Features
 
 ### Navigation
+
 - Responsive navigation bar with links to all sections
 - Active route highlighting
 
 ### CRUD Operations
+
 - Create, Read, Update, Delete operations for all entities
 - Modal forms for creating and editing records
 - Confirmation dialogs for delete operations
 
 ### User Experience
+
 - Loading indicators during API calls
 - Toast notifications for success/error messages
 - Responsive design that works on all devices
 - Bootstrap styling for professional appearance
 
 ### Error Handling
+
 - Global error handling for API calls
 - User-friendly error messages
 - Proper validation for form inputs

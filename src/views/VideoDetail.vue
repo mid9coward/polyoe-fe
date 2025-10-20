@@ -125,7 +125,7 @@
                     <img
                       :src="
                         comment.user?.avatarUrl
-                          ? `http://localhost:1212${comment.user.avatarUrl}`
+                          ? `https://poly-backend.onrender.com${comment.user.avatarUrl}`
                           : '/default-avatar.png'
                       "
                       alt="Avatar"

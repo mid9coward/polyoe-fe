@@ -37,7 +37,7 @@ Vue.js frontend application for the Video Management System.
 
 ## Configuration
 
-The frontend is configured to connect to the backend API at `https://poly-backend.onrender.com/api`.
+The frontend is configured to connect to the backend API at `https://java4-polyoe-2.onrender.com//api`.
 
 Make sure your backend server is running before starting the frontend application.
 

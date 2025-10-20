@@ -125,7 +125,7 @@
                     <img
                       :src="
                         comment.user?.avatarUrl
-                          ? `https://poly-backend.onrender.com${comment.user.avatarUrl}`
+                          ? `https://java4-polyoe-2.onrender.com/${comment.user.avatarUrl}`
                           : '/default-avatar.png'
                       "
                       alt="Avatar"

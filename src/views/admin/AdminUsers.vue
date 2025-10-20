@@ -50,7 +50,7 @@
               <img
                 :src="
                   user.avatarUrl
-                    ? `https://poly-backend.onrender.com${user.avatarUrl}`
+                    ? `https://java4-polyoe-2.onrender.com/${user.avatarUrl}`
                     : '/default-avatar.png'
                 "
                 alt="Avatar"

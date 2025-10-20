@@ -116,7 +116,7 @@
                 <img
                   :src="
                     currentUser.avatarUrl
-                      ? `https://poly-backend.onrender.com${currentUser.avatarUrl}`
+                      ? `https://java4-polyoe-2.onrender.com/${currentUser.avatarUrl}`
                       : '/default-avatar.png'
                   "
                   alt="Avatar"
